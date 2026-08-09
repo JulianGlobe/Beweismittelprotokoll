@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beweismittelprotokoll</title>
+<style>
+  :root{
+    --bg:#0f172a;
+    --card:#111827;
+    --muted:#94a3b8;
+    --text:#f8fafc;
+    --line:#334155;
+    --accent:#22345a;
+    --accent2:#3b82f6;
+    --danger:#991b1b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    background:linear-gradient(180deg,#0b1020,#111827 45%,#0f172a);
+    color:var(--text);
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px}
+  .hero{
+    background:rgba(17,24,39,.92);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:24px;
+    box-shadow:0 10px 35px rgba(0,0,0,.28);
+  }
+  h1{margin:0 0 8px;font-size:30px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  label{display:block;font-size:13px;color:#cbd5e1;margin:0 0 6px}
+  input,textarea{
+    width:100%;
+    padding:12px 13px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#0b1220;
+    color:var(--text);
+    outline:none;
+  }
+  input:focus,textarea:focus{border-color:var(--accent2)}
+  textarea{min-height:90px;resize:vertical}
+  .section-title{
+    margin:26px 0 12px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px
+  }
+  .section-title h2{font-size:20px;margin:0}
+  button{
+    border:0;
+    border-radius:10px;
+    padding:11px 14px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .primary{background:var(--accent2);color:#fff}
+  .secondary{background:#1e293b;color:#fff;border:1px solid var(--line)}
+  .danger{background:#3f1515;color:#fecaca;border:1px solid #7f1d1d}
+  .person{
+    border:1px solid var(--line);
+    background:rgba(15,23,42,.88);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:16px;
+  }
+  .person-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .person-head h3{margin:0;font-size:17px}
+  .evidence-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin-bottom:8px}
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .hint{
+    margin-top:18px;padding:13px;border:1px dashed var(--line);border-radius:12px;
+    color:#cbd5e1;background:rgba(2,6,23,.4);font-size:13px
+  }
+  @media(max-width:760px){
+    .grid{grid-template-columns:1fr}
+  }
+
+  /* Print / PDF */
+  @media print {
+    body{background:#fff;color:#000}
+    .no-print{display:none!important}
+    .wrap{max-width:none;padding:0}
+    .hero{box-shadow:none;border:0;padding:0;background:#fff}
+    .sub,.hint{display:none}
+    input,textarea{
+      border:0!important;
+      background:#fff!important;
+      color:#000!important;
+      padding:0!important;
+      font:inherit;
+    }
+    .person{border:1px solid #777;background:#fff;break-inside:avoid}
+    .person-head{margin-bottom:10px}
+    .evidence-row{grid-template-columns:1fr}
+    .evidence-row button{display:none}
+    .section-title button,.person-head button{display:none}
+    h1{font-size:24px}
+  }
+</style>
+
+<style id="premium-lspd-design">
+:root{
+  --navy:#0b1830;
+  --navy2:#132b50;
+  --gold:#c7a44b;
+  --paper:#ffffff;
+  --ink:#182235;
+  --muted:#667085;
+  --line:#d8dee8;
+  --soft:#f4f7fb;
+}
+body{
+  background:
+    radial-gradient(circle at 15% 0%, rgba(199,164,75,.10), transparent 25rem),
+    linear-gradient(135deg,#07101f,#102344 55%,#091426);
+}
+.card,.panel,main,.container{
+  border:1px solid rgba(255,255,255,.10);
+}
+h1{
+  letter-spacing:.02em;
+}
+button{
+  transition:.15s ease;
+}
+button:hover{
+  transform:translateY(-1px);
+}
+@media print{
+  @page{ size:A4; margin:12mm; }
+  html,body{
+    background:#fff !important;
+    color:var(--ink)!important;
+    font-family:Arial,Helvetica,sans-serif!important;
+  }
+  body:before{
+    content:"LOS SANTOS POLICE DEPARTMENT";
+    display:block;
+    color:var(--navy);
+    font-size:10pt;
+    font-weight:700;
+    letter-spacing:.18em;
+    border-bottom:3px solid var(--gold);
+    padding:0 0 4mm 0;
+    margin-bottom:5mm;
+  }
+  h1{
+    color:var(--navy)!important;
+    font-size:22pt!important;
+    margin:0 0 2mm!important;
+    text-transform:uppercase;
+  }
+  h1:after{
+    content:"  •  BEWEISMITTELDOKUMENTATION";
+    display:inline;
+    color:var(--gold);
+    font-size:8pt;
+    letter-spacing:.08em;
+  }
+  h2,h3{
+    color:var(--navy)!important;
+    border-left:4px solid var(--gold);
+    padding-left:3mm;
+  }
+  input,textarea{
+    color:#111!important;
+    background:#fff!important;
+    border:0!important;
+  }
+  table{
+    width:100%!important;
+    border-collapse:collapse!important;
+    margin:3mm 0 7mm!important;
+    break-inside:avoid;
+  }
+  th,td{
+    border:1px solid #aeb7c5!important;
+    padding:2.3mm!important;
+    vertical-align:top!important;
+  }
+  th{
+    background:var(--navy)!important;
+    color:#fff!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  tr:first-child td{
+    border-top:2px solid var(--gold)!important;
+  }
+  button,.actions,.no-print{
+    display:none!important;
+  }
+  *{
+    box-shadow:none!important;
+    text-shadow:none!important;
+  }
+  body:after{
+    content:"Beweismittelprotokoll • Vertrauliche dienstliche Dokumentation";
+    display:block;
+    margin-top:8mm;
+    padding-top:3mm;
+    border-top:1px solid #c8cfda;
+    color:#667085;
+    font-size:7.5pt;
+    text-align:center;
+  }
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>Beweismittelprotokoll</h1>
+    <p class="sub">Dynamische Erfassung von Personen und den jeweils zugeordneten Beweismitteln.</p>
+
+    <div class="grid">
+      <div>
+        <label for="bearbeiter">Bearbeiter des Protokolls</label>
+        <input id="bearbeiter" placeholder="z. B. PD-005 | Dr. Julian Globe">
+      </div>
+      <div>
+        <label for="vorgang">DOC-NUMMER</label>
+        <input id="vorgang" placeholder="z. B. DOC-12345">
+      </div>
+    </div>
+
+    <div class="section-title">
+      <h2>Personen</h2>
+      <button class="secondary no-print" onclick="addPerson()">+ Person hinzufügen</button>
+    </div>
+
+    <div id="persons"></div>
+
+    <div class="actions no-print">
+      <button class="primary" onclick="saveCase()">Speichern</button>
+      <button class="secondary" onclick="window.print()">PDF</button>
+      <button class="danger" onclick="resetAll()">Alles zurücksetzen</button>
+    </div>
+
+    <div class="hint no-print">
+      „PDF“ öffnet den Browser-Dialog. Dort als Ziel „Als PDF speichern“ wählen.
+      „Speichern“ merkt sich den aktuellen Vorgang in diesem Browser. Wenn du die Seite später auf demselben Gerät und im selben Browser wieder öffnest, wird der letzte gespeicherte Stand automatisch wiederhergestellt.
+    </div>
+  </div>
+</div>
+
+<script>
+let persons = [];
+let currentId = localStorage.getItem('bwp_current_id') || '';
+
+function uid(){
+  return 'BWP-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
+}
+
+function addPerson(data={}){
+  persons.push({
+    name:data.name||'',
+    dob:data.dob||'',
+    evidence:Array.isArray(data.evidence)&&data.evidence.length?data.evidence:['']
+  });
+  render();
+}
+
+function removePerson(i){
+  persons.splice(i,1);
+  if(!persons.length) addPerson();
+  render();
+}
+
+function addEvidence(i){
+  syncFromDom();
+  persons[i].evidence.push('');
+  render();
+}
+
+function removeEvidence(pi, ei){
+  syncFromDom();
+  persons[pi].evidence.splice(ei,1);
+  if(!persons[pi].evidence.length) persons[pi].evidence.push('');
+  render();
+}
+
+function syncFromDom(){
+  persons.forEach((p,i)=>{
+    const n=document.querySelector(`[data-name="${i}"]`);
+    const d=document.querySelector(`[data-dob="${i}"]`);
+    if(n) p.name=n.value;
+    if(d) p.dob=d.value;
+    const ev=[...document.querySelectorAll(`[data-evidence="${i}"]`)].map(x=>x.value);
+    if(ev.length) p.evidence=ev;
+  });
+}
+
+function render(){
+  const root=document.getElementById('persons');
+  root.innerHTML='';
+  persons.forEach((p,i)=>{
+    const div=document.createElement('div');
+    div.className='person';
+    div.innerHTML=`
+      <div class="person-head">
+        <h3>Person ${i+1}${p.name ? ' – ' + escapeHtml(p.name) : ''}</h3>
+        ${persons.length>1 ? `<button class="danger no-print" onclick="removePerson(${i})">Person entfernen</button>`:''}
+      </div>
+      <div class="grid">
+        <div>
+          <label>Name</label>
+          <input data-name="${i}" value="${escapeAttr(p.name)}" placeholder="Vor- und Nachname">
+        </div>
+        <div>
+          <label>Geburtsdatum</label>
+          <input data-dob="${i}" type="date" value="${escapeAttr(p.dob)}">
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label>Beweismittel</label>
+        <div id="ev-${i}">
+          ${p.evidence.map((ev,ei)=>`
+            <div class="evidence-row">
+              <input data-evidence="${i}" value="${escapeAttr(ev)}" placeholder="z. B. 1x Schwere Pistole">
+              ${p.evidence.length>1 ? `<button class="danger no-print" onclick="removeEvidence(${i},${ei})">Entfernen</button>`:''}
+            </div>
+          `).join('')}
+        </div>
+        <button class="secondary no-print" onclick="addEvidence(${i})">+ Beweismittel</button>
+      </div>
+    `;
+    root.appendChild(div);
+  });
+}
+
+function collect(){
+  syncFromDom();
+  return {
+    id: currentId || uid(),
+    createdAt: new Date().toISOString(),
+    bearbeiter: document.getElementById('bearbeiter').value.trim(),
+    vorgang: document.getElementById('vorgang').value.trim(),
+    persons: persons.map(p=>({
+      name:p.name.trim(),
+      dob:p.dob,
+      evidence:p.evidence.map(x=>x.trim()).filter(Boolean)
+    })).filter(p=>p.name || p.dob || p.evidence.length)
+  };
+}
+
+function saveCase(){
+  const data=collect();
+  currentId=data.id;
+  localStorage.setItem('bwp_current_id', currentId);
+  localStorage.setItem('bwp_last_case', JSON.stringify(data));
+  alert('Vorgang gespeichert. Beim nächsten Öffnen auf diesem Gerät wird er automatisch wiederhergestellt.');
+}
+
+function restoreLastCase(){
+  const raw = localStorage.getItem('bwp_last_case');
+  if(!raw) return false;
+
+  try{
+    const data = JSON.parse(raw);
+    currentId = data.id || '';
+    document.getElementById('bearbeiter').value = data.bearbeiter || '';
+    document.getElementById('vorgang').value = data.vorgang || '';
+    persons = (data.persons || []).map(p => ({
+      name: p.name || '',
+      dob: p.dob || '',
+      evidence: p.evidence && p.evidence.length ? p.evidence : ['']
+    }));
+    if(!persons.length) persons=[{name:'',dob:'',evidence:['']}];
+    render();
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+function resetAll(){
+  if(!confirm('Wirklich alles zurücksetzen? Der gespeicherte Vorgang wird auf diesem Gerät gelöscht.')) return;
+  currentId='';
+  localStorage.removeItem('bwp_current_id');
+  localStorage.removeItem('bwp_last_case');
+  document.getElementById('bearbeiter').value='';
+  document.getElementById('vorgang').value='';
+  persons=[{name:'',dob:'',evidence:['']}];
+  render();
+}
+
+function escapeHtml(s=''){
+  return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+}
+function escapeAttr(s=''){ return escapeHtml(s); }
+
+if(!restoreLastCase()) addPerson();
+</script>
+</body>
+</html>
