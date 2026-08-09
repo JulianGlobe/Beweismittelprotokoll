@@ -106,7 +106,7 @@
 <style id="image-export-styles">
   #image-export-root{position:fixed;left:-99999px;top:0;width:1080px;background:#fff;color:#172033;font-family:Arial,Helvetica,sans-serif}
   .export-page{width:1080px;min-height:1350px;background:#fff;padding:48px 56px 44px;box-sizing:border-box}
-  .export-header{border-bottom:5px solid #c7a44b;padding-bottom:14px;margin-bottom:18px}
+  .export-header{border-bottom:5px solid #000000;padding-bottom:14px;margin-bottom:18px}
   .export-kicker{font-size:16px;font-weight:700;letter-spacing:.18em;color:#22345a;margin-bottom:8px}
   .export-title{font-size:36px;font-weight:800;color:#0b1830;margin:0;line-height:1.05}
   .export-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px;margin:18px 0 20px;padding:13px 15px;border:1px solid #d9dee8;background:#f6f8fb;border-radius:9px;font-size:17px}
@@ -138,14 +138,23 @@
         <label for="vorgang">DOC-NUMMER</label>
         <input id="vorgang" placeholder="z. B. DOC-12345">
       </div>
+        <div>
+          <label for="protokollTitel">Titel des Protokolls / Fraktion</label>
+          <input id="protokollTitel" type="text" placeholder="z. B. Fraktionsname">
+        </div>
     </div>
 
     <div class="section-title">
       <h2>Personen</h2>
-      <button class="secondary no-print" onclick="addPerson()">+ Person hinzufügen</button>
+      
     </div>
 
     <div id="persons"></div>
+    <div class="no-print" style="margin-top:14px;margin-bottom:8px;">
+      <button class="secondary" onclick="addPerson()" style="width:100%;padding:14px;">
+        + Person hinzufügen
+      </button>
+    </div>
 
     <div class="actions no-print">
       <button class="primary" onclick="saveCase()">Speichern</button>
@@ -225,7 +234,7 @@ function render(){
         </div>
         <div>
           <label>Geburtsdatum</label>
-          <input data-dob="${i}" type="date" value="${escapeAttr(p.dob)}">
+          <input data-dob="${i}" type="text" inputmode="numeric" maxlength="10" value="${escapeAttr(p.dob)}" placeholder="TT.MM.JJJJ" oninput="formatGermanDate(this)">
         </div>
       </div>
       <div style="margin-top:14px">
@@ -277,6 +286,7 @@ function restoreLastCase(){
     currentId = data.id || '';
     document.getElementById('bearbeiter').value = data.bearbeiter || '';
     document.getElementById('vorgang').value = data.vorgang || '';
+    if(document.getElementById('protokollTitel')) document.getElementById('protokollTitel').value = data.protokollTitel || '';
     persons = (data.persons || []).map(p => ({
       name: p.name || '',
       dob: p.dob || '',
@@ -306,6 +316,18 @@ function escapeHtml(s=''){
 }
 function escapeAttr(s=''){ return escapeHtml(s); }
 
+
+function formatGermanDate(el){
+  let digits = el.value.replace(/\D/g,'').slice(0,8);
+  if(digits.length > 4){
+    el.value = digits.slice(0,2) + '.' + digits.slice(2,4) + '.' + digits.slice(4);
+  } else if(digits.length > 2){
+    el.value = digits.slice(0,2) + '.' + digits.slice(2);
+  } else {
+    el.value = digits;
+  }
+}
+
 if(!restoreLastCase()) addPerson();
 </script>
 <div id="image-export-root" aria-hidden="true"></div>
@@ -324,7 +346,7 @@ function _exportDaten(){
     const ev = Array.isArray(p.evidence) ? p.evidence.map(x => String(x || '').trim()).filter(Boolean) : [];
     return {nummer:idx+1,name:String(p.name||'').trim(),dob:String(p.dob||'').trim(),evidence:ev};
   }).filter(p => p.name || p.dob || p.evidence.length);
-  return {bearbeiter:bearbeiterEl?bearbeiterEl.value.trim():'',doc:docEl?docEl.value.trim():'',persons:ps};
+  return {bearbeiter:bearbeiterEl?bearbeiterEl.value.trim():'',doc:docEl?docEl.value.trim():'',titel:(document.getElementById('protokollTitel')?.value || '').trim(),persons:ps};
 }
 function _personHtml(p){
   const evidence = p.evidence.length
@@ -342,7 +364,7 @@ function _pageHtml(data, chunk, pageNo, pageCount){
   return `<div class="export-page">
     <div class="export-header">
       <div class="export-kicker">LOS SANTOS POLICE DEPARTMENT</div>
-      <h1 class="export-title">BEWEISMITTELPROTOKOLL</h1>
+      <h1 class="export-title">BEWEISMITTELPROTOKOLL</h1>${data.titel ? `<div style="margin-top:8px;font-size:22px;font-weight:700;color:#111;">${_exportEsc(data.titel)}</div>` : ``}
     </div>
     <div class="export-meta">
       <div><b>Bearbeiter:</b> ${_exportEsc(data.bearbeiter || '—')}</div>
