@@ -207,59 +207,114 @@ function removeEvidence(pi, ei){
 
 function syncFromDom(){
   persons.forEach((p,i)=>{
-    const n=document.querySelector(`[data-name="${i}"]`);
-    const d=document.querySelector(`[data-dob="${i}"]`);
-    if(n) p.name=n.value;
-    if(d) p.dob=d.value;
-    const ev=[...document.querySelectorAll(`[data-evidence="${i}"]`)].map(x=>x.value);
-    if(ev.length) p.evidence=ev;
+    p.name=document.querySelector(`[data-name="${i}"]`)?.value||'';
+    p.dob=document.querySelector(`[data-dob="${i}"]`)?.value||'';
+    p.fundstellen=(p.fundstellen||[]).map((f,j)=>({
+      type:document.querySelector(`[data-fund-type="${i}-${j}"]`)?.value||'Person',
+      detail:document.querySelector(`[data-fund-detail="${i}-${j}"]`)?.value||'',
+      evidence:[...document.querySelectorAll(`[data-fund-evidence="${i}-${j}"]`)].map(x=>x.value)
+    }));
   });
+}
+
+
+function addFundstelle(i){
+  syncFromDom();
+  if(!persons[i].fundstellen) persons[i].fundstellen=[];
+  persons[i].fundstellen.push({type:'Fahrzeug',detail:'',evidence:['']});
+  render();
+}
+function removeFundstelle(i,j){
+  syncFromDom();
+  persons[i].fundstellen.splice(j,1);
+  if(!persons[i].fundstellen.length) persons[i].fundstellen=[{type:'Person',detail:'',evidence:['']}];
+  render();
+}
+function addFundEvidence(i,j){
+  syncFromDom();
+  persons[i].fundstellen[j].evidence.push('');
+  render();
+}
+function removeFundEvidence(i,j,k){
+  syncFromDom();
+  persons[i].fundstellen[j].evidence.splice(k,1);
+  if(!persons[i].fundstellen[j].evidence.length) persons[i].fundstellen[j].evidence.push('');
+  render();
 }
 
 function render(){
   const root=document.getElementById('persons');
   root.innerHTML='';
+
   persons.forEach((p,i)=>{
+    if(!Array.isArray(p.fundstellen)||!p.fundstellen.length){
+      p.fundstellen=[{
+        type:p.locationType||'Person',
+        detail:p.locationDetail||'',
+        evidence:Array.isArray(p.evidence)&&p.evidence.length?p.evidence:['']
+      }];
+    }
+
     const div=document.createElement('div');
     div.className='person';
+
+    const fundstellenHtml=p.fundstellen.map((f,j)=>`
+      <div style="margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(2,6,23,.28)">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px">
+          <strong>Fundstelle ${j+1}</strong>
+          ${p.fundstellen.length>1?`<button class="danger no-print" onclick="removeFundstelle(${i},${j})">Fundstelle entfernen</button>`:''}
+        </div>
+
+        <div class="grid">
+          <div>
+            <label>Zuordnung</label>
+            <select data-fund-type="${i}-${j}">
+              <option value="Person" ${f.type==='Person'?'selected':''}>Person / Tasche</option>
+              <option value="Fahrzeug" ${f.type==='Fahrzeug'?'selected':''}>Fahrzeug</option>
+              <option value="Sonstiges" ${f.type==='Sonstiges'?'selected':''}>Sonstiges</option>
+            </select>
+          </div>
+          <div>
+            <label>Örtlichkeit / Details</label>
+            <input data-fund-detail="${i}-${j}" value="${escapeAttr(f.detail||'')}" placeholder="z. B. Hosentasche, Kofferraum, Handschuhfach">
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <label>Beweismittel an dieser Fundstelle</label>
+          ${(f.evidence&&f.evidence.length?f.evidence:['']).map((ev,k)=>`
+            <div class="evidence-row">
+              <input data-fund-evidence="${i}-${j}" value="${escapeAttr(ev)}" placeholder="z. B. 1x Schweres Gewehr">
+              ${(f.evidence||[]).length>1?`<button class="danger no-print" onclick="removeFundEvidence(${i},${j},${k})">Entfernen</button>`:''}
+            </div>
+          `).join('')}
+          <button class="secondary no-print" onclick="addFundEvidence(${i},${j})">+ Beweismittel</button>
+        </div>
+      </div>
+    `).join('');
+
     div.innerHTML=`
       <div class="person-head">
         <h3>Person ${i+1}${p.name ? ' – ' + escapeHtml(p.name) : ''}</h3>
         ${persons.length>1 ? `<button class="danger no-print" onclick="removePerson(${i})">Person entfernen</button>`:''}
       </div>
+
       <div class="grid">
         <div>
           <label>Name</label>
-          <input data-name="${i}" value="${escapeAttr(p.name)}" placeholder="Vor- und Nachname">
+          <input data-name="${i}" value="${escapeAttr(p.name||'')}" placeholder="Vor- und Nachname">
         </div>
         <div>
           <label>Geburtsdatum</label>
-          <input data-dob="${i}" type="text" inputmode="numeric" maxlength="10" value="${escapeAttr(p.dob)}" placeholder="TT.MM.JJJJ" oninput="formatGermanDate(this)">
+          <input data-dob="${i}" type="text" inputmode="numeric" maxlength="10" value="${escapeAttr(p.dob||'')}" placeholder="TT.MM.JJJJ" oninput="formatGermanDate(this)">
         </div>
-        <div>
-          <label>Fundort / Zuordnung</label>
-          <select data-location-type="${i}">
-            <option value="Person" ${p.locationType==='Person'?'selected':''}>Person / Tasche</option>
-            <option value="Fahrzeug" ${p.locationType==='Fahrzeug'?'selected':''}>Fahrzeug</option>
-            <option value="Sonstiges" ${p.locationType==='Sonstiges'?'selected':''}>Sonstiges</option>
-          </select>
-        </div>
-        <div>
-          <label>Örtlichkeit / Details</label>
-          <input data-location-detail="${i}" value="${escapeAttr ? escapeAttr(p.locationDetail||'') : attr(p.locationDetail||'')}" placeholder="z. B. Hosentasche, Kofferraum, Handschuhfach">
       </div>
-      <div style="margin-top:14px">
-        <label>Beweismittel</label>
-        <div id="ev-${i}">
-          ${p.evidence.map((ev,ei)=>`
-            <div class="evidence-row">
-              <input data-evidence="${i}" value="${escapeAttr(ev)}" placeholder="z. B. 1x Schwere Pistole">
-              ${p.evidence.length>1 ? `<button class="danger no-print" onclick="removeEvidence(${i},${ei})">Entfernen</button>`:''}
-            </div>
-          `).join('')}
-        </div>
-        <button class="secondary no-print" onclick="addEvidence(${i})">+ Beweismittel</button>
-      </div>
+
+      ${fundstellenHtml}
+
+      <button class="secondary no-print" onclick="addFundstelle(${i})" style="width:100%;margin-top:12px;">
+        + Weitere Fundstelle für diese Person
+      </button>
     `;
     root.appendChild(div);
   });
@@ -273,12 +328,14 @@ function collect(){
     bearbeiter: document.getElementById('bearbeiter').value.trim(),
     vorgang: document.getElementById('vorgang').value.trim(),
     persons: persons.map(p=>({
-      name:p.name.trim(),
-      dob:p.dob,
-      locationType:p.locationType||'Person',
-      locationDetail:(p.locationDetail||'').trim(),
-      evidence:p.evidence.map(x=>x.trim()).filter(Boolean)
-    })).filter(p=>p.name || p.dob || p.evidence.length)
+      name:(p.name||'').trim(),
+      dob:p.dob||'',
+      fundstellen:(p.fundstellen||[]).map(f=>({
+        type:f.type||'Person',
+        detail:(f.detail||'').trim(),
+        evidence:(f.evidence||[]).map(x=>x.trim()).filter(Boolean)
+      })).filter(f=>f.detail || f.evidence.length)
+    })).filter(p=>p.name || p.dob || p.fundstellen.length)
   };
 }
 
@@ -305,7 +362,7 @@ function restoreLastCase(){
       dob: p.dob || '',
       evidence: p.evidence && p.evidence.length ? p.evidence : ['']
     }));
-    if(!persons.length) persons=[{name:'',dob:'',locationType:'Person',locationDetail:'',evidence:['']}];
+    if(!persons.length) persons=[{name:'',dob:'',fundstellen:[{type:'Person',detail:'',evidence:['']}]}];
     render();
     return true;
   } catch(e){
@@ -320,7 +377,7 @@ function resetAll(){
   localStorage.removeItem('bwp_last_case');
   document.getElementById('bearbeiter').value='';
   document.getElementById('vorgang').value='';
-  persons=[{name:'',dob:'',locationType:'Person',locationDetail:'',evidence:['']}];
+  persons=[{name:'',dob:'',fundstellen:[{type:'Person',detail:'',evidence:['']}]}];
   render();
 }
 
@@ -357,22 +414,47 @@ function _exportDaten(){
   const docEl = document.getElementById('vorgang') || document.getElementById('docNumber');
   const ps = (persons || []).map(function(p, idx){
     const ev = Array.isArray(p.evidence) ? p.evidence.map(x => String(x || '').trim()).filter(Boolean) : [];
-    return {nummer:idx+1,name:String(p.name||'').trim(),dob:String(p.dob||'').trim(),locationType:String(p.locationType||'Person').trim(),locationDetail:String(p.locationDetail||'').trim(),evidence:ev};
+    return {
+      nummer:idx+1,
+      name:String(p.name||'').trim(),
+      dob:String(p.dob||'').trim(),
+      fundstellen:(p.fundstellen||[]).map(f=>({
+        type:String(f.type||'Person').trim(),
+        detail:String(f.detail||'').trim(),
+        evidence:Array.isArray(f.evidence)?f.evidence.map(x=>String(x||'').trim()).filter(Boolean):[]
+      }))
+    };
   }).filter(p => p.name || p.dob || p.evidence.length);
   return {bearbeiter:bearbeiterEl?bearbeiterEl.value.trim():'',doc:docEl?docEl.value.trim():'',titel:(document.getElementById('protokollTitel')?.value || '').trim(),persons:ps};
 }
 function _personHtml(p){
-  const evidence = p.evidence.length
-    ? '<div class="export-evidence">' + p.evidence.map(e => '<span class="export-chip">' + _exportEsc(e) + '</span>').join('') + '</div>'
-    : 'Keine Angaben';
-  return `<div class="export-person">
-    <div class="export-person-head"><span>Person ${p.nummer}</span><span>${_exportEsc(p.name || 'Ohne Namen')}</span></div>
-    <div class="export-person-grid">
-      <div class="export-label">Geburtsdatum</div><div class="export-value">${_exportEsc(p.dob || '—')}</div>
-      <div class="export-label">Zuordnung</div><div class="export-value">${_exportEsc(p.locationType || '—')}${p.locationDetail ? ' · ' + _exportEsc(p.locationDetail) : ''}</div>
-      <div class="export-label">Beweismittel</div><div class="export-value">${evidence}</div>
-    </div>
-  </div>`;
+  const fundstellen=(p.fundstellen||[]).map(function(f,idx){
+    const evidence=f.evidence&&f.evidence.length
+      ? '<div class="export-evidence">' + f.evidence.map(function(e){
+          return '<span class="export-chip">' + _exportEsc(e) + '</span>';
+        }).join('') + '</div>'
+      : 'Keine Angaben';
+
+    const ort=[f.type||'—',f.detail||''].filter(Boolean).join(' · ');
+
+    return `
+      <div class="export-label">Fundstelle ${idx+1}</div>
+      <div class="export-value"><b>${_exportEsc(ort)}</b>${evidence ? '<div style="margin-top:5px">'+evidence+'</div>' : ''}</div>
+    `;
+  }).join('');
+
+  return `
+    <div class="export-person">
+      <div class="export-person-head">
+        <span>Person ${p.nummer}</span>
+        <span>${_exportEsc(p.name || 'Ohne Namen')}</span>
+      </div>
+      <div class="export-person-grid">
+        <div class="export-label">Geburtsdatum</div>
+        <div class="export-value">${_exportEsc(p.dob || '—')}</div>
+        ${fundstellen}
+      </div>
+    </div>`;
 }
 function _pageHtml(data, chunk, pageNo, pageCount){
   return `<div class="export-page">
