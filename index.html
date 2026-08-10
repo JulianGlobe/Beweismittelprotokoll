@@ -34,7 +34,7 @@
   .sub{color:var(--muted);margin:0 0 20px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
   label{display:block;font-size:13px;color:#cbd5e1;margin:0 0 6px}
-  input,textarea{
+  input,textarea,select{
     width:100%;
     padding:12px 13px;
     border-radius:10px;
@@ -43,7 +43,7 @@
     color:var(--text);
     outline:none;
   }
-  input:focus,textarea:focus{border-color:var(--accent2)}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent2)}
   textarea{min-height:90px;resize:vertical}
   .section-title{
     margin:26px 0 12px;
@@ -236,6 +236,17 @@ function render(){
           <label>Geburtsdatum</label>
           <input data-dob="${i}" type="text" inputmode="numeric" maxlength="10" value="${escapeAttr(p.dob)}" placeholder="TT.MM.JJJJ" oninput="formatGermanDate(this)">
         </div>
+        <div>
+          <label>Fundort / Zuordnung</label>
+          <select data-location-type="${i}">
+            <option value="Person" ${p.locationType==='Person'?'selected':''}>Person / Tasche</option>
+            <option value="Fahrzeug" ${p.locationType==='Fahrzeug'?'selected':''}>Fahrzeug</option>
+            <option value="Sonstiges" ${p.locationType==='Sonstiges'?'selected':''}>Sonstiges</option>
+          </select>
+        </div>
+        <div>
+          <label>Örtlichkeit / Details</label>
+          <input data-location-detail="${i}" value="${escapeAttr ? escapeAttr(p.locationDetail||'') : attr(p.locationDetail||'')}" placeholder="z. B. Hosentasche, Kofferraum, Handschuhfach">
       </div>
       <div style="margin-top:14px">
         <label>Beweismittel</label>
@@ -264,6 +275,8 @@ function collect(){
     persons: persons.map(p=>({
       name:p.name.trim(),
       dob:p.dob,
+      locationType:p.locationType||'Person',
+      locationDetail:(p.locationDetail||'').trim(),
       evidence:p.evidence.map(x=>x.trim()).filter(Boolean)
     })).filter(p=>p.name || p.dob || p.evidence.length)
   };
@@ -292,7 +305,7 @@ function restoreLastCase(){
       dob: p.dob || '',
       evidence: p.evidence && p.evidence.length ? p.evidence : ['']
     }));
-    if(!persons.length) persons=[{name:'',dob:'',evidence:['']}];
+    if(!persons.length) persons=[{name:'',dob:'',locationType:'Person',locationDetail:'',evidence:['']}];
     render();
     return true;
   } catch(e){
@@ -307,7 +320,7 @@ function resetAll(){
   localStorage.removeItem('bwp_last_case');
   document.getElementById('bearbeiter').value='';
   document.getElementById('vorgang').value='';
-  persons=[{name:'',dob:'',evidence:['']}];
+  persons=[{name:'',dob:'',locationType:'Person',locationDetail:'',evidence:['']}];
   render();
 }
 
@@ -344,7 +357,7 @@ function _exportDaten(){
   const docEl = document.getElementById('vorgang') || document.getElementById('docNumber');
   const ps = (persons || []).map(function(p, idx){
     const ev = Array.isArray(p.evidence) ? p.evidence.map(x => String(x || '').trim()).filter(Boolean) : [];
-    return {nummer:idx+1,name:String(p.name||'').trim(),dob:String(p.dob||'').trim(),evidence:ev};
+    return {nummer:idx+1,name:String(p.name||'').trim(),dob:String(p.dob||'').trim(),locationType:String(p.locationType||'Person').trim(),locationDetail:String(p.locationDetail||'').trim(),evidence:ev};
   }).filter(p => p.name || p.dob || p.evidence.length);
   return {bearbeiter:bearbeiterEl?bearbeiterEl.value.trim():'',doc:docEl?docEl.value.trim():'',titel:(document.getElementById('protokollTitel')?.value || '').trim(),persons:ps};
 }
@@ -356,6 +369,7 @@ function _personHtml(p){
     <div class="export-person-head"><span>Person ${p.nummer}</span><span>${_exportEsc(p.name || 'Ohne Namen')}</span></div>
     <div class="export-person-grid">
       <div class="export-label">Geburtsdatum</div><div class="export-value">${_exportEsc(p.dob || '—')}</div>
+      <div class="export-label">Zuordnung</div><div class="export-value">${_exportEsc(p.locationType || '—')}${p.locationDetail ? ' · ' + _exportEsc(p.locationDetail) : ''}</div>
       <div class="export-label">Beweismittel</div><div class="export-value">${evidence}</div>
     </div>
   </div>`;
